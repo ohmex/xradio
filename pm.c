@@ -146,7 +146,6 @@ static int xradio_pm_init_common(struct xradio_pm_state *pm,
 				  struct xradio_common *hw_priv)
 {
 	int ret;
-	pm_printk(XRADIO_DBG_TRC,"%s\n", __FUNCTION__);
 
 	spin_lock_init(&pm->lock);
 	/* Register pm driver. */
@@ -180,7 +179,6 @@ static int xradio_pm_init_common(struct xradio_pm_state *pm,
 
 static void xradio_pm_deinit_common(struct xradio_pm_state *pm)
 {
-	pm_printk(XRADIO_DBG_TRC,"%s\n", __FUNCTION__);
 	platform_driver_unregister(&xradio_power_driver);
 	if (pm->pm_dev) {
 		pm->pm_dev->dev.platform_data = NULL;
@@ -195,7 +193,6 @@ int xradio_pm_init(struct xradio_pm_state *pm,
 		   struct xradio_common *hw_priv)
 {
 	int ret = 0;
-	pm_printk(XRADIO_DBG_TRC,"%s\n", __FUNCTION__);
 
 	ret = xradio_pm_init_common(pm, hw_priv);
 	if (!ret)
@@ -207,7 +204,6 @@ int xradio_pm_init(struct xradio_pm_state *pm,
 
 void xradio_pm_deinit(struct xradio_pm_state *pm)
 {
-	pm_printk(XRADIO_DBG_TRC,"%s\n", __FUNCTION__);
 	if (wake_lock_active(&pm->wakelock))
 		wake_unlock(&pm->wakelock);
 	wake_lock_destroy(&pm->wakelock);
@@ -221,11 +217,7 @@ void xradio_pm_stay_awake(struct xradio_pm_state *pm,
 	pm_printk(XRADIO_DBG_MSG,"%s\n", __FUNCTION__);
 
 	spin_lock_bh(&pm->lock);
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0))
 	cur_tmo = pm->wakelock.ws.timer.expires - jiffies;
-#else
-	cur_tmo = pm->wakelock.expires - jiffies;
-#endif
 	if (!wake_lock_active(&pm->wakelock) || cur_tmo < (long)tmo)
 		wake_lock_timeout(&pm->wakelock, tmo);
 	spin_unlock_bh(&pm->lock);
@@ -234,11 +226,7 @@ void xradio_pm_lock_awake(struct xradio_pm_state *pm)
 {
 
 	spin_lock_bh(&pm->lock);
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0))
 	pm->expires_save = pm->wakelock.ws.timer.expires;
-#else
-	pm->expires_save = pm->wakelock.expires;
-#endif
 	wake_lock_timeout(&pm->wakelock, LONG_MAX);
 	spin_unlock_bh(&pm->lock);
 }
@@ -317,7 +305,6 @@ static long xradio_suspend_work(struct delayed_work *work)
 {
 	int ret = cancel_delayed_work(work);
 	long tmo;
-	pm_printk(XRADIO_DBG_TRC, "%s\n", __func__);
 
 	if (ret > 0) {
 		/* Timer is pending */
@@ -334,7 +321,6 @@ static int xradio_resume_work(struct xradio_common *hw_priv,
 			       struct delayed_work *work,
 			       unsigned long tmo)
 {
-	pm_printk(XRADIO_DBG_TRC, "%s\n", __func__);
 	if ((long)tmo < 0)
 		return 1;
 
@@ -360,12 +346,11 @@ static int xradio_suspend_late(struct device *dev)
 
 static void xradio_pm_release(struct device *dev)
 {
-	pm_printk(XRADIO_DBG_TRC, "%s\n", __func__);
+	pm_printk(XRADIO_DBG_DEV, "%s\n", __func__);
 }
 
 static int xradio_pm_probe(struct platform_device *pdev)
 {
-	pm_printk(XRADIO_DBG_TRC, "%s\n", __func__);
 	pdev->dev.release = xradio_pm_release;
 	return 0;
 }
